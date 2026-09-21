@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full select-none">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>تحدي كرة القدم - تطبيق الهواتف الذكية</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Arabic (Cairo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- JS Confetti Effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pitch: {
+                            950: '#030f08',
+                            900: '#061e12',
+                            800: '#0b3820',
+                            700: '#11502e',
+                            600: '#186e40',
+                            accent: '#10b981',
+                            gold: '#fbbf24',
+                            neon: '#34d399'
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #030f08;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.25) 0%, transparent 65%),
+                radial-gradient(circle at 50% 100%, rgba(5, 46, 22, 0.8) 0%, transparent 80%),
+                linear-gradient(to bottom, rgba(3, 15, 8, 0.85), rgba(2, 10, 5, 0.95)),
+                url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&q=80');
+            background-position: center;
+            background-size: cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+        }
+        html {
+            height: -webkit-fill-available;
+        }
+        .glass-card {
+            background: rgba(11, 40, 24, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .glass-card-interactive {
+            background: rgba(11, 40, 24, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card-interactive:active {
+            transform: scale(0.97);
+            background: rgba(17, 80, 46, 0.9);
+        }
+        .btn-glow {
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+        .btn-glow:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.6);
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);
+        }
+        .btn-gold:active {
+            transform: scale(0.96);
+        }
+        .animate-pop {
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .pulse-subtle {
+            animation: pulseGlow 2s infinite alternate;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+            100% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); }
+        }
+        /* Mobile Safe Areas for Notch and Gesture Bar */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 1rem);
+        }
+        .pt-safe {
+            padding-top: env(safe-area-inset-top, 0.5rem);
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, 0.4);
+            border-radius: 999px;
+        }
+    </style>
+</head>
+<body class="text-white flex flex-col justify-between items-center min-h-screen w-full px-3 py-2 sm:p-4">
+
+    <!-- App Mobile Top Navigation Header -->
+    <header class="w-full max-w-md pt-safe mb-3">
+        <div class="glass-card rounded-2xl px-4 py-3 flex justify-between items-center border border-pitch-neon/30 pulse-subtle">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pitch-accent to-emerald-300 flex items-center justify-center text-pitch-950 text-xl font-black shadow-lg">
+                    <i class="fa-solid fa-football"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-lg leading-tight text-white tracking-wide">تحدي كورة</h1>
+                    <p class="text-[10px] text-pitch-neon/80 font-bold">تطبيق المسابقات الرياضية</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- Mute/Sound Toggle Button -->
+                <button id="sound-toggle-btn" onclick="toggleAudio()" class="w-9 h-9 rounded-xl bg-pitch-800/80 border border-pitch-accent/30 flex items-center justify-center text-pitch-neon active:scale-90 transition">
+                    <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <!-- Reset Game Button -->
+                <button id="reset-game-btn" onclick="confirmRestart()" class="hidden w-9 h-9 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 flex items-center justify-center active:scale-90 transition">
+                    <i class="fa-solid fa-rotate-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-md my-auto flex-1 flex flex-col justify-center">
+
+        <!-- SCREEN 1: Setup Screen -->
+        <section id="setup-screen" class="glass-card rounded-3xl p-5 sm:p-6 text-center animate-pop w-full my-auto">
+            <div class="w-16 h-16 rounded-2xl bg-pitch-accent/15 border border-pitch-accent/30 mx-auto flex items-center justify-center mb-3">
+                <i class="fa-solid fa-users-gear text-3xl text-pitch-neon"></i>
+            </div>
+            
+            <h2 class="text-2xl font-black mb-1 text-white">إعداد التحدي</h2>
+            <p class="text-xs text-emerald-200/70 mb-5">حدد عدد المتسابقين واختر التصنيف المفضل</p>
+
+            <!-- Player Count Input -->
+            <div class="mb-5 text-right">
+                <label class="block text-xs font-bold mb-2 text-pitch-neon flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-group text-xs"></i> عدد المتسابقين:
+                </label>
+                <div class="grid grid-cols-4 gap-2" id="player-count-buttons">
+                    <button type="button" onclick="setPlayerCount(2)" class="player-cnt-btn active bg-pitch-accent text-pitch-950 font-black py-2.5 rounded-xl text-sm border border-pitch-accent transition">2 لاعبين</button>
+                    <button type="button" onclick="setPlayerCount(3)" class="player-cnt-btn bg-pitch-800/80 text-emerald-100 font-bold py-2.5 rounded-xl text-sm border border-emerald-500/20 transition">3 لاعبين</button>
+                    <button type="button" onclick="setPlayerCount(4)" class="player-cnt-btn bg-pitch-800/80 text-emerald-100 font-bold py-2.5 rounded-xl text-sm border border-emerald-500/20 transition">4 لاعبين</button>
+                    <button type="button" onclick="setPlayerCount(5)" class="player-cnt-btn bg-pitch-800/80 text-emerald-100 font-bold py-2.5 rounded-xl text-sm border border-emerald-500/20 transition">5 لاعبين</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Player Name Inputs -->
+            <div id="player-inputs-container" class="space-y-2 mb-5 text-right">
+                <!-- Javascript inserts inputs here -->
+            </div>
+
+            <!-- Category Selection -->
+            <div class="mb-6 text-right">
+                <label class="block text-xs font-bold mb-2 text-pitch-neon flex items-center gap-1.5">
+                    <i class="fa-solid fa-layer-group text-xs"></i> اختر تصنيف الأسئلة:
+                </label>
+                <div class="grid grid-cols-2 gap-2" id="category-buttons">
+                    <button type="button" onclick="selectCategory('all')" class="cat-btn cat-btn-all active bg-pitch-accent text-pitch-950 font-bold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-pitch-accent">
+                        <i class="fa-solid fa-border-all"></i> جميع التصنيفات
+                    </button>
+                    <button type="button" onclick="selectCategory('general')" class="cat-btn cat-btn-general bg-pitch-800/80 text-emerald-200 font-semibold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-emerald-500/20">
+                        <i class="fa-solid fa-circle-question"></i> أسئلة عامة
+                    </button>
+                    <button type="button" onclick="selectCategory('transfers')" class="cat-btn cat-btn-transfers bg-pitch-800/80 text-emerald-200 font-semibold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-emerald-500/20">
+                        <i class="fa-solid fa-right-left"></i> انتقالات اللاعبين
+                    </button>
+                    <button type="button" onclick="selectCategory('nationalities')" class="cat-btn cat-btn-nationalities bg-pitch-800/80 text-emerald-200 font-semibold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-emerald-500/20">
+                        <i class="fa-solid fa-passport"></i> جنسيات اللاعبين
+                    </button>
+                    <button type="button" onclick="selectCategory('leagues')" class="cat-btn cat-btn-leagues bg-pitch-800/80 text-emerald-200 font-semibold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-emerald-500/20">
+                        <i class="fa-solid fa-trophy"></i> دوريات الأندية
+                    </button>
+                    <button type="button" onclick="selectCategory('reversed')" class="cat-btn cat-btn-reversed bg-pitch-800/80 text-emerald-200 font-semibold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-emerald-500/20">
+                        <i class="fa-solid fa-puzzle-piece"></i> كلمات معكوسة
+                    </button>
+                    <button type="button" onclick="selectCategory('flags_logos')" class="cat-btn cat-btn-flags_logos col-span-2 bg-pitch-800/80 text-emerald-200 font-semibold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-emerald-500/20">
+                        <i class="fa-solid fa-flag"></i> الأعلام وشعارات الأندية
+                    </button>
+                </div>
+            </div>
+
+            <!-- Start Game Button -->
+            <button onclick="startGame()" class="w-full bg-gradient-to-r from-pitch-accent to-emerald-400 text-pitch-950 font-black py-3.5 rounded-xl text-base btn-glow transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play"></i> انطلاق التحدي
+            </button>
+        </section>
+
+        <!-- SCREEN 2: Question Screen -->
+        <section id="game-screen" class="glass-card rounded-3xl p-4 sm:p-5 text-center hidden animate-pop w-full my-auto">
+            
+            <!-- Category Bar & Quick Switcher -->
+            <div class="mb-3 bg-pitch-900/90 p-2 rounded-xl border border-pitch-accent/20">
+                <div class="flex items-center justify-between mb-1.5 px-1">
+                    <span id="category-badge" class="text-pitch-neon text-[11px] font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-tag text-pitch-accent"></i> التصنيف الحالي
+                    </span>
+                    <button onclick="toggleQuickCatModal()" class="text-[10px] bg-pitch-800 text-emerald-300 hover:text-white px-2 py-0.5 rounded-md border border-emerald-500/30">
+                        <i class="fa-solid fa-sliders ml-1"></i> تغيير التصنيف
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timer Bar -->
+            <div class="mb-4 bg-pitch-900/80 p-2.5 rounded-2xl border border-pitch-accent/30 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-pitch-neon font-black text-sm flex items-center justify-center border border-emerald-500/30">
+                        <i class="fa-solid fa-stopwatch"></i>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-emerald-300/70 block font-semibold leading-tight">المؤقت التنازلي</span>
+                        <span id="timer-display" class="text-base font-black text-emerald-300 tracking-wider">30 ثانية</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button id="timer-toggle-btn" onclick="toggleTimer()" class="px-3 py-1.5 rounded-xl bg-pitch-accent/20 hover:bg-pitch-accent/30 text-pitch-neon border border-pitch-accent/40 text-xs font-bold">
+                        <i id="timer-toggle-icon" class="fa-solid fa-pause ml-1"></i> إيقاف
+                    </button>
+                    <button onclick="resetTimer()" class="p-1.5 w-8 h-8 rounded-xl bg-pitch-800 text-emerald-300 hover:text-white text-xs border border-emerald-500/30 flex items-center justify-center">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question Card Box -->
+            <div class="bg-gradient-to-b from-pitch-900/90 to-pitch-800/90 border border-pitch-accent/30 rounded-2xl p-5 mb-4 min-h-[150px] flex items-center justify-center shadow-inner">
+                <h2 id="question-text" class="text-lg sm:text-xl font-black leading-relaxed text-emerald-50">
+                    جاري تحميل السؤال...
+                </h2>
+            </div>
+
+            <!-- Action Button: Reveal Answer -->
+            <button id="show-answer-btn" onclick="revealAnswer()" class="w-full bg-gradient-to-r from-pitch-accent to-emerald-400 text-pitch-950 font-black py-3.5 rounded-xl text-base btn-glow transition flex items-center justify-center gap-2 mb-2">
+                <i class="fa-solid fa-eye"></i> كشف الإجابة الصحيحة
+            </button>
+
+            <!-- Answer Display Box (Hidden by default) -->
+            <div id="answer-box" class="hidden bg-emerald-950/90 border border-pitch-accent rounded-2xl p-4 mb-4 animate-pop text-right">
+                <div class="flex items-center gap-2 text-pitch-neon font-black text-xs mb-1.5">
+                    <i class="fa-solid fa-circle-check text-sm"></i>
+                    <span>الإجابة الرسمية:</span>
+                </div>
+                <p id="answer-text" class="text-base sm:text-lg font-black text-white bg-pitch-900/90 p-3 rounded-xl border border-emerald-500/20">
+                    --
+                </p>
+            </div>
+
+            <!-- Action Button: Proceed to Points Screen -->
+            <button id="proceed-score-btn" onclick="goToScoreScreen()" class="hidden w-full btn-gold text-pitch-950 font-black py-3.5 rounded-xl text-base transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-square-poll-vertical"></i> احتساب النقاط والتنقيط
+            </button>
+        </section>
+
+        <!-- SCREEN 3: Scoreboard Screen -->
+        <section id="score-screen" class="glass-card rounded-3xl p-4 sm:p-5 text-center hidden animate-pop w-full my-auto">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 mx-auto flex items-center justify-center mb-2">
+                <i class="fa-solid fa-trophy text-2xl text-amber-400"></i>
+            </div>
+            <h2 class="text-xl font-black mb-1">نقاط الجولة</h2>
+            <p class="text-xs text-emerald-200/70 mb-4">أضف نقطة للمتسابق الذي أجاب إجابة صحيحة</p>
+
+            <!-- Quick Add Points Buttons -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-pitch-neon mb-2 text-right">إضافة نقطة فورية لـ:</label>
+                <div id="score-buttons-grid" class="grid grid-cols-2 gap-2">
+                    <!-- Dynamic Buttons -->
+                </div>
+            </div>
+
+            <!-- Score Table -->
+            <div class="overflow-hidden mb-5 rounded-2xl border border-emerald-500/30 bg-pitch-900/90">
+                <table class="w-full text-right border-collapse">
+                    <thead>
+                        <tr class="bg-pitch-800/80 text-pitch-neon text-xs border-b border-emerald-500/20">
+                            <th class="p-2.5 text-center">الترتيب</th>
+                            <th class="p-2.5">المتسابق</th>
+                            <th class="p-2.5 text-center">النقاط</th>
+                            <th class="p-2.5 text-center">تعديل</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoreboard-body" class="divide-y divide-emerald-500/10 text-xs">
+                        <!-- Dynamic Leaderboard Rows -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Next Question & End Game Buttons -->
+            <div class="space-y-2">
+                <button onclick="nextQuestion()" class="w-full bg-gradient-to-r from-pitch-accent to-emerald-400 text-pitch-950 font-black py-3.5 rounded-xl text-base btn-glow transition flex items-center justify-center gap-2">
+                    <span>السؤال التالي</span>
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button onclick="finishGame()" class="w-full bg-pitch-800/80 hover:bg-pitch-700/80 text-red-300 font-bold py-2.5 rounded-xl text-xs border border-red-500/30 transition">
+                    إنهـاء التحدي وإعلان الفائز
+                </button>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: Winner Celebration Screen -->
+        <section id="winner-screen" class="glass-card rounded-3xl p-6 text-center hidden animate-pop w-full my-auto">
+            <div class="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-400 mx-auto flex items-center justify-center mb-3 animate-bounce">
+                <i class="fa-solid fa-crown text-4xl text-amber-400"></i>
+            </div>
+            
+            <span class="text-xs font-bold text-amber-400 tracking-wider block mb-1">بطل التحدي الكروي</span>
+            <h2 id="winner-name" class="text-3xl font-black text-white mb-2">--</h2>
+            <p id="winner-score" class="text-sm text-emerald-300 mb-6 font-bold">--</p>
+
+            <div class="bg-pitch-900/90 rounded-2xl p-4 border border-emerald-500/30 mb-6 text-right">
+                <h3 class="text-xs font-bold text-pitch-neon mb-2">الترتيب النهائي:</h3>
+                <div id="final-leaderboard-list" class="space-y-2 text-xs">
+                    <!-- Final list insertion -->
+                </div>
+            </div>
+
+            <button onclick="executeRestart()" class="w-full bg-gradient-to-r from-pitch-accent to-emerald-400 text-pitch-950 font-black py-3.5 rounded-xl text-base btn-glow transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> لعب جولة جديدة
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Quick Category Switch Modal -->
+    <div id="category-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card p-5 rounded-3xl max-w-xs w-full text-center border border-pitch-accent/40 animate-pop">
+            <h3 class="text-base font-black mb-3 text-pitch-neon">اختر التصنيف الجديد</h3>
+            <div class="grid grid-cols-1 gap-2 mb-4 text-xs font-bold">
+                <button onclick="switchCategoryModal('all')" class="p-2.5 rounded-xl bg-pitch-800 text-emerald-200 hover:bg-pitch-accent hover:text-pitch-950 border border-emerald-500/20">جميع التصنيفات</button>
+                <button onclick="switchCategoryModal('general')" class="p-2.5 rounded-xl bg-pitch-800 text-emerald-200 hover:bg-pitch-accent hover:text-pitch-950 border border-emerald-500/20">أسئلة عامة</button>
+                <button onclick="switchCategoryModal('transfers')" class="p-2.5 rounded-xl bg-pitch-800 text-emerald-200 hover:bg-pitch-accent hover:text-pitch-950 border border-emerald-500/20">انتقالات اللاعبين</button>
+                <button onclick="switchCategoryModal('nationalities')" class="p-2.5 rounded-xl bg-pitch-800 text-emerald-200 hover:bg-pitch-accent hover:text-pitch-950 border border-emerald-500/20">جنسيات اللاعبين</button>
+                <button onclick="switchCategoryModal('leagues')" class="p-2.5 rounded-xl bg-pitch-800 text-emerald-200 hover:bg-pitch-accent hover:text-pitch-950 border border-emerald-500/20">دوريات الأندية</button>
+                <button onclick="switchCategoryModal('reversed')" class="p-2.5 rounded-xl bg-pitch-800 text-emerald-200 hover:bg-pitch-accent hover:text-pitch-950 border border-emerald-500/20">الكلمات المعكوسة</button>
+                <button onclick="switchCategoryModal('flags_logos')" class="p-2.5 rounded-xl bg-pitch-800 text-emerald-200 hover:bg-pitch-accent hover:text-pitch-950 border border-emerald-500/20">الأعلام والشعارات</button>
+            </div>
+            <button onclick="toggleQuickCatModal()" class="w-full bg-red-500/20 text-red-300 font-bold py-2 rounded-xl text-xs border border-red-500/30">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- Confirm Reset Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card p-5 rounded-3xl max-w-xs w-full text-center border border-pitch-accent/40 animate-pop">
+            <i class="fa-solid fa-circle-question text-3xl text-amber-400 mb-2"></i>
+            <h3 class="text-lg font-black mb-1">إعادة اللعبة؟</h3>
+            <p class="text-xs text-emerald-200/70 mb-5">ستفقد جميع النقاط الحالية وتبدأ من الجديد.</p>
+            <div class="flex gap-2">
+                <button onclick="executeRestart()" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl text-xs transition">إعادة</button>
+                <button onclick="closeModal()" class="flex-1 bg-pitch-800 text-emerald-200 font-bold py-2.5 rounded-xl text-xs border border-emerald-500/20 transition">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="w-full max-w-md text-center py-2 text-[10px] text-emerald-300/40 pb-safe">
+        تطبيق تحدي كرة القدم &copy; مصمم للهواتف الذكية iOS & Android
+    </footer>
+
+    <script>
+        // --- Web Audio API Synth Sound Effects (Zero External Audio Assets Required) ---
+        let audioEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'reveal') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'point') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'win') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.15);
+                    osc.frequency.setValueAtTime(659.25, now + 0.3);
+                    osc.frequency.setValueAtTime(880, now + 0.45);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.7);
+                    osc.start(now);
+                    osc.stop(now + 0.7);
+                }
+            } catch (e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = getEl('sound-icon');
+            if (audioEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-red-400';
+            }
+        }
+
+        // --- Database of Questions ---
+        const questionsMasterList = [
+            // --- أسئلة عامة ---
+            { cat: 'general', q: "من هو الهداف التاريخي لبطولة كأس العالم؟", a: "ميروسلاف كلوزه (16 هدفاً)" },
+            { cat: 'general', q: "أي منتخب فاز بكأس العالم في نسخة 2010 التي أقيمت في جنوب إفريقيا؟", a: "منتخب إسبانيا" },
+            { cat: 'general', q: "من هو الحارس الشهير الذي تصدى لركلة ترجيح بنمط 'ركلة العقرب'؟", a: "رينيه هيجيتا (حارس كولومبيا)" },
+            { cat: 'general', q: "ما هو النادي الأكثر تتويجاً بلقب دوري أبطال أوروبا؟", a: "ريال مدريد (15 لقباً)" },
+            { cat: 'general', q: "من هو اللاعب الفائز بالكرة الذهبية عام 2018 متفوقاً على ميسي ورونالدو؟", a: "لوكا مودريتش" },
+            { cat: 'general', q: "أي دولة استضافت أول بطولة كأس عالم في التاريخ عام 1930؟", a: "أوروغواي" },
+            { cat: 'general', q: "من هو اللاعب الأكثر مشاركة في المباريات في تاريخ دوري أبطال أوروبا؟", a: "كريستيانو رونالدو" },
+
+            // --- أسئلة الانتقالات بين الأندية ---
+            { cat: 'transfers', q: "من هو اللاعب الذي انتقل من برشلونة إلى باريس سان جيرمان في أغلى صفقة عام 2017؟", a: "نيمار داسيلفا" },
+            { cat: 'transfers', q: "من هو النجم الذي انتقل مباشرة من ريال مدريد إلى يوفنتوس صيف عام 2018؟", a: "كريستيانو رونالدو" },
+            { cat: 'transfers', q: "لاعب إنجليزي شاب انتقل من بوروسيا دورتموند إلى ريال مدريد في صيف 2023؟", a: "جود بيلينغهام" },
+            { cat: 'transfers', q: "من هو الحارس الذي انتقل من أتلتيكو مدريد إلى تشيلسي ثم إلى ريال مدريد؟", a: "تيبو كورتوا" },
+            { cat: 'transfers', q: "لاعب إفريقي كبير انتقل من ليفربول إلى بايرن ميونخ ثم إلى النصر السعودي؟", a: "ساديو ماني" },
+            { cat: 'transfers', q: "من هو الهداف الإنجليزي الذي انتقل من توتنهام إلى بايرن ميونخ عام 2023؟", a: "هاري كين" },
+            { cat: 'transfers', q: "من هو النجم البولندي الذي انتقل من بايرن ميونخ إلى برشلونة عام 2022؟", a: "روبرت ليفاندوفسكي" },
+
+            // --- أسئلة اللاعبين متعددي الجنسيات ---
+            { cat: 'nationalities', q: "لاعب يملك الجنسيتين الفرنسية والجزائرية ولد في باريس وفاز بكأس العالم 2018 مع فرنسا؟", a: "كيليان إمبابي" },
+            { cat: 'nationalities', q: "لاعب ولد في هولندا ويملك الجنسية المغربية وفضل تمثيل المغرب ووصل معهم لنصف نهائي مونديال 2022؟", a: "حكيم زياش" },
+            { cat: 'nationalities', q: "لاعب ولد في مدينة ليدز بإنجلترا ويحمل الجنسية النرويجية واختار اللعب للنرويج؟", a: "إيرلينغ هالاند" },
+            { cat: 'nationalities', q: "لاعب من أصول تركية ويحمل الجنسية الألمانية وتوج بكأس العالم 2014 ولعب لآرسنال وريال مدريد؟", a: "مسعود أوزيل" },
+            { cat: 'nationalities', q: "لاعب ولد في أنغولا ويحمل الجنسية الفرنسية ويلعب حالياً في خط وسط ريال مدريد؟", a: "إدواردو كامافينجا" },
+            { cat: 'nationalities', q: "لاعب ولد في غينيا بيساو ويحمل الجنسية الإسبانية ولعب لبرشلونة والمنتخب الإسباني؟", a: "أنسو فاتي" },
+
+            // --- أسئلة دوريات الأندية ---
+            { cat: 'leagues', q: "في أي دوري يقع نادي 'فينورد' (Feyenoord) الشهير؟", a: "الدوري الهولندي الممتاز (Eredivisie)" },
+            { cat: 'leagues', q: "في أي دوري ينافس نادي 'بورتو' (FC Porto)؟", a: "الدوري البرتغالي الممتاز" },
+            { cat: 'leagues', q: "في أي دوري يشارك نادي 'سيلتيك' (Celtic FC) التاريخي؟", a: "الدوري الأسكتلندي الممتاز" },
+            { cat: 'leagues', q: "في أي دوري يقع نادي 'ريفر بليت' (River Plate) العريق؟", a: "الدوري الأرجنتيني الممتاز" },
+            { cat: 'leagues', q: "في أي دوري يلعب نادي 'أوراوا ريد دياموندز'؟", a: "الدوري الياباني (J1 League)" },
+            { cat: 'leagues', q: "في أي دوري يلعب نادي 'فلامينغو' الشهير؟", a: "الدوري البرازيلي الممتاز (Brasileirão)" },
+
+            // --- أسئلة الكلمات المعكوسة ---
+            { cat: 'reversed', q: "فك الشفرة المعكوسة لاسم هذا النادي الملكي: ( د ي ر د م ل ا ي ر )", a: "ريال مدريد" },
+            { cat: 'reversed', q: "فك الشفرة المعكوسة لاسم هذا النجم الأسطوري: ( ي س ي م ل ي ن و ي ل )", a: "ليونيل ميسي" },
+            { cat: 'reversed', q: "فك الشفرة المعكوسة لاسم هذا المنتخب الفائز بـ 5 كؤوس عالم: ( ل ي ز ا ر ب ل ا )", a: "البرازيل" },
+            { cat: 'reversed', q: "فك الشفرة المعكوسة لاسم هذه البطولة الكبرى: ( ا ب ر و و أ ل ط ب أ ي ر و د )", a: "دوري أبطال أوروبا" },
+            { cat: 'reversed', q: "فك الشفرة المعكوسة لاسم هذا النادي الإنجليزي: ( ل و ب ر ف ي ل )", a: "ليفربول" },
+
+            // --- أسئلة تخمين الأعلام والشعارات ---
+            { cat: 'flags_logos', q: "خمن المنتخب صاحب هذا العلم: 🇦🇷 (أزرق سماوي وأبيض وفي المنتصف شمس ذهبية)", a: "منتخب الأرجنتين" },
+            { cat: 'flags_logos', q: "خمن المنتخب صاحب هذا العلم: 🇲🇦 (علم أحمر وفي منتصفه نجمة خماسية خضراء)", a: "منتخب المغرب" },
+            { cat: 'flags_logos', q: "خمن المنتخب صاحب هذا العلم: 🇭🇷 (أحمر وأبيض وأزرق وفي المنتصف درع الشطرنج الشهير)", a: "منتخب كرواتيا" },
+            { cat: 'flags_logos', q: "خمن النادي صاحب هذا الشعار: 🔴🔵 (درع بالأزرق والأحمر الداكن مع علم كاتالونيا)", a: "نادي برشلونة" },
+            { cat: 'flags_logos', q: "خمن النادي صاحب هذا الشعار: 🔴⚪ (شعار دائري أحمر وأبيض وفي منتصفه مدفع حربي)", a: "نادي آرسنال الإنجليزي" }
+        ];
+
+        // --- State Variables ---
+        let selectedCategory = 'all';
+        let activeQuestions = [];
+        let currentQuestionIndex = 0;
+        let players = [];
+        let selectedPlayerCount = 2;
+
+        // Timer variables
+        let timerSeconds = 30;
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        const categoryNames = {
+            'all': 'جميع التصنيفات',
+            'general': 'أسئلة عامة',
+            'transfers': 'انتقالات اللاعبين',
+            'nationalities': 'جنسيات اللاعبين',
+            'leagues': 'دوريات الأندية',
+            'reversed': 'الكلمات المعكوسة',
+            'flags_logos': 'الأعلام والشعارات'
+        };
+
+        function getEl(id) {
+            return document.getElementById(id);
+        }
+
+        function shuffleArray(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function setPlayerCount(count) {
+            playSound('click');
+            selectedPlayerCount = count;
+            
+            document.querySelectorAll('.player-cnt-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-pitch-accent', 'text-pitch-950', 'font-black');
+                btn.classList.add('bg-pitch-800/80', 'text-emerald-100', 'font-bold');
+            });
+
+            event.currentTarget.classList.remove('bg-pitch-800/80', 'text-emerald-100', 'font-bold');
+            event.currentTarget.classList.add('active', 'bg-pitch-accent', 'text-pitch-950', 'font-black');
+
+            generatePlayerInputs();
+        }
+
+        function generatePlayerInputs() {
+            const container = getEl('player-inputs-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            for (let i = 1; i <= selectedPlayerCount; i++) {
+                container.innerHTML += `
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-pitch-neon font-black text-xs flex items-center justify-center border border-emerald-500/30">
+                            ${i}
+                        </span>
+                        <input type="text" id="player-input-${i}" placeholder="اسم المتسابق ${i}" value="المتسابق ${i}" 
+                            class="w-full bg-pitch-900/90 border border-emerald-500/30 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-pitch-accent transition">
+                    </div>
+                `;
+            }
+        }
+
+        function selectCategory(catKey) {
+            playSound('click');
+            selectedCategory = catKey;
+            
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-pitch-accent', 'text-pitch-950', 'font-bold', 'border-pitch-accent');
+                btn.classList.add('bg-pitch-800/80', 'text-emerald-200', 'font-semibold', 'border-emerald-500/20');
+            });
+
+            document.querySelectorAll(`.cat-btn-${catKey}`).forEach(btn => {
+                btn.classList.remove('bg-pitch-800/80', 'text-emerald-200', 'font-semibold', 'border-emerald-500/20');
+                btn.classList.add('active', 'bg-pitch-accent', 'text-pitch-950', 'font-bold', 'border-pitch-accent');
+            });
+        }
+
+        function toggleQuickCatModal() {
+            playSound('click');
+            getEl('category-modal').classList.toggle('hidden');
+        }
+
+        function switchCategoryModal(catKey) {
+            selectCategory(catKey);
+            toggleQuickCatModal();
+
+            let categoryPool = questionsMasterList;
+            if (selectedCategory !== 'all') {
+                categoryPool = questionsMasterList.filter(q => q.cat === selectedCategory);
+            }
+            activeQuestions = shuffleArray(categoryPool);
+            currentQuestionIndex = 0;
+            loadCurrentQuestion();
+        }
+
+        function startGame() {
+            playSound('click');
+            players = [];
+
+            for (let i = 1; i <= selectedPlayerCount; i++) {
+                const nameInput = getEl(`player-input-${i}`);
+                const name = nameInput && nameInput.value.trim() !== '' ? nameInput.value.trim() : `المتسابق ${i}`;
+                players.push({ id: i, name: name, score: 0 });
+            }
+
+            let categoryPool = questionsMasterList;
+            if (selectedCategory !== 'all') {
+                categoryPool = questionsMasterList.filter(q => q.cat === selectedCategory);
+            }
+
+            activeQuestions = shuffleArray(categoryPool);
+            currentQuestionIndex = 0;
+
+            getEl('setup-screen').classList.add('hidden');
+            getEl('game-screen').classList.remove('hidden');
+            getEl('reset-game-btn').classList.remove('hidden');
+
+            loadCurrentQuestion();
+        }
+
+        function loadCurrentQuestion() {
+            let currentQ;
+            if (currentQuestionIndex < activeQuestions.length) {
+                currentQ = activeQuestions[currentQuestionIndex];
+            } else {
+                currentQ = {
+                    q: `سؤال إضافي رقم (${currentQuestionIndex + 1}): اذكر نادياً فاز بلقب دوري أبطال أوروبا في تاريخه؟`,
+                    a: "إجابة حرة وتقييم الحكم (مثل ريال مدريد، ليفربول، بايرن، تشيلسي...)"
+                };
+            }
+
+            const catLabel = categoryNames[selectedCategory] || 'تحدي كروي';
+            getEl('category-badge').innerHTML = `<i class="fa-solid fa-tag text-pitch-accent"></i> التصنيف: ${catLabel}`;
+
+            getEl('question-text').innerText = currentQ.q;
+            getEl('answer-text').innerText = currentQ.a;
+
+            getEl('answer-box').classList.add('hidden');
+            getEl('proceed-score-btn').classList.add('hidden');
+            getEl('show-answer-btn').classList.remove('hidden');
+
+            resetTimer();
+            startTimer();
+        }
+
+        // --- Timer Engine ---
+        function startTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = true;
+            updateTimerDisplay();
+            getEl('timer-toggle-icon').className = 'fa-solid fa-pause ml-1';
+
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    getEl('timer-display').innerText = 'انتهى الوقت!';
+                    getEl('timer-display').classList.add('text-red-400');
+                    playSound('reveal');
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerSeconds = 30;
+            isTimerRunning = false;
+            getEl('timer-display').classList.remove('text-red-400');
+            updateTimerDisplay();
+            getEl('timer-toggle-icon').className = 'fa-solid fa-play ml-1';
+        }
+
+        function toggleTimer() {
+            playSound('click');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                getEl('timer-toggle-icon').className = 'fa-solid fa-play ml-1';
+            } else {
+                startTimer();
+            }
+        }
+
+        function updateTimerDisplay() {
+            getEl('timer-display').innerText = `${timerSeconds} ثانية`;
+        }
+
+        function revealAnswer() {
+            playSound('reveal');
+            clearInterval(timerInterval);
+            getEl('answer-box').classList.remove('hidden');
+            getEl('show-answer-btn').classList.add('hidden');
+            getEl('proceed-score-btn').classList.remove('hidden');
+        }
+
+        function goToScoreScreen() {
+            playSound('click');
+            getEl('game-screen').classList.add('hidden');
+            getEl('score-screen').classList.remove('hidden');
+
+            renderScoreControls();
+            renderScoreboard();
+        }
+
+        function renderScoreControls() {
+            const grid = getEl('score-buttons-grid');
+            grid.innerHTML = '';
+
+            players.forEach((player, index) => {
+                grid.innerHTML += `
+                    <button onclick="addPoint(${index})" class="glass-card-interactive text-pitch-neon font-bold p-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-emerald-500/30">
+                        <i class="fa-solid fa-plus text-pitch-accent"></i>
+                        <span class="truncate">+1 لـ ${escapeHtml(player.name)}</span>
+                    </button>
+                `;
+            });
+        }
+
+        function addPoint(playerIndex) {
+            playSound('point');
+            players[playerIndex].score += 1;
+            renderScoreboard();
+        }
+
+        function changePoint(playerIndex, delta) {
+            playSound('click');
+            players[playerIndex].score = Math.max(0, players[playerIndex].score + delta);
+            renderScoreboard();
+        }
+
+        function renderScoreboard() {
+            const tbody = getEl('scoreboard-body');
+            tbody.innerHTML = '';
+
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+
+            sortedPlayers.forEach((player, rank) => {
+                const originalIndex = players.findIndex(p => p.id === player.id);
+                let rankBadge = `<span class="text-xs font-bold text-emerald-300/80">#${rank + 1}</span>`;
+                if (rank === 0 && player.score > 0) {
+                    rankBadge = `<i class="fa-solid fa-crown text-amber-400 text-sm"></i>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-pitch-800/50 transition">
+                        <td class="p-2.5 text-center">${rankBadge}</td>
+                        <td class="p-2.5 font-bold text-white truncate max-w-[120px]">${escapeHtml(player.name)}</td>
+                        <td class="p-2.5 text-center font-black text-pitch-neon text-sm">${player.score}</td>
+                        <td class="p-2.5 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="changePoint(${originalIndex}, 1)" class="w-6 h-6 rounded-lg bg-emerald-500/20 text-pitch-neon text-xs flex items-center justify-center active:scale-90">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                                <button onclick="changePoint(${originalIndex}, -1)" class="w-6 h-6 rounded-lg bg-red-500/20 text-red-300 text-xs flex items-center justify-center active:scale-90">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            currentQuestionIndex++;
+            getEl('score-screen').classList.add('hidden');
+            getEl('game-screen').classList.remove('hidden');
+            loadCurrentQuestion();
+        }
+
+        function finishGame() {
+            playSound('win');
+            getEl('score-screen').classList.add('hidden');
+            getEl('winner-screen').classList.remove('hidden');
+
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+            const winner = sortedPlayers[0];
+
+            getEl('winner-name').innerText = winner.name;
+            getEl('winner-score').innerText = `المجموع النهائي: ${winner.score} نقطة`;
+
+            const list = getEl('final-leaderboard-list');
+            list.innerHTML = '';
+            sortedPlayers.forEach((p, index) => {
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-pitch-800/80 p-2 rounded-xl border border-emerald-500/20">
+                        <span class="font-bold text-white">#${index + 1} ${escapeHtml(p.name)}</span>
+                        <span class="font-black text-pitch-neon">${p.score} نقطة</span>
+                    </div>
+                `;
+            });
+
+            // Confetti Celebration
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function confirmRestart() {
+            playSound('click');
+            getEl('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            playSound('click');
+            getEl('custom-modal').classList.add('hidden');
+        }
+
+        function executeRestart() {
+            playSound('click');
+            closeModal();
+            clearInterval(timerInterval);
+            getEl('game-screen').classList.add('hidden');
+            getEl('score-screen').classList.add('hidden');
+            getEl('winner-screen').classList.add('hidden');
+            getEl('reset-game-btn').classList.add('hidden');
+            getEl('setup-screen').classList.remove('hidden');
+            generatePlayerInputs();
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        window.onload = function() {
+            generatePlayerInputs();
+        };
+    </script>
+</body>
+</html>
